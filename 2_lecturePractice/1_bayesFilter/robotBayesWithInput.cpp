@@ -19,16 +19,6 @@ using namespace std;
 class BayesFilter
 {
 public:
-
-    BayesFilter(){
-        UPush << pXOpenBarUPushXOpen, pXCloseBarUPushXOpen,
-                pXOpenBarUPushXClose, pXCloseBarUPushXClose;
-        UNot  << pXOpenBarUNotXOpen, pXCloseBarUNotXOpen,
-                pXOpenBarUNotXClose, pXCloseBarUNotXClose;
-        belBar << belBarOpen , belBarClose;
-        bel << belOpen, belClose;
-    }
-
     void run()
     {
         while (true)
@@ -71,7 +61,7 @@ public:
 
     void run_step(vector<pair<bool, bool>> inputsAndMeasures)
     {
-        
+
         for (auto step : inputsAndMeasures)
         {
             tick += 1;
@@ -112,35 +102,86 @@ public:
         }
     }
 
+    void run_step_eigen(vector<pair<bool, bool>> inputsAndMeasures) // g++ $(pkg-config --cflags eigen3) robotBayesWithInput.cpp
+    {
+        // for matrix Eigen library
+        vectorZOpen << pZOpenBarXOpen, pZOpenBarXClose;
+        vectorZClose << pZCloseBarXOpen, pZCloseBarXClose;
+        matrixUPush << pXOpenBarUPushXOpen, pXOpenBarUPushXClose,
+            pXCloseBarUPushXOpen, pXCloseBarUPushXClose;
+        matrixUNot << pXOpenBarUNotXOpen, pXOpenBarUNotXClose,
+            pXCloseBarUNotXOpen, pXCloseBarUNotXClose;
+        vectorBelBar << belBarOpen, belBarClose;
+        vectorBel << belOpen, belClose;
+
+        for (auto step : inputsAndMeasures)
+        {
+            tick += 1;
+            Eigen::Vector2d vectorBelPrev = vectorBel;
+
+            cout << "Robot Input Pushing(1) or Not(0): " << step.first << endl;
+            isPushing = step.first;
+
+            cout << "Robot Measurement Open(1) or Closed(0): " << step.second << endl;
+            isOpen = step.second;
+
+            if (isPushing)
+            {
+                vectorBelBar = matrixUPush * vectorBelPrev;
+            }
+            else
+            {
+                vectorBelBar = matrixUNot * vectorBelPrev;
+            }
+            cout << setw(3) << tick << ": belBarOpen = " << setw(5) << vectorBelBar(0) << ", belBarClose = " << setw(5) << vectorBelBar(1) << endl;
+
+            if (isOpen)
+            {
+                double normalizer = vectorZOpen.transpose() * vectorBelBar;
+                vectorBel << vectorZOpen(0) * vectorBelBar(0) / normalizer, vectorZOpen(1) * vectorBelBar(1) / normalizer;
+            }
+            else
+            {
+                double normalizer = vectorZClose.transpose() * vectorBelBar;
+                vectorBel << vectorZClose(0) * vectorBelBar(0) / normalizer, vectorZClose(1) * vectorBelBar(1) / normalizer;
+            }
+            cout << setw(3) << tick << ": belOpen = " << setw(5) << vectorBel(0) << ", belClose = " << setw(5) << vectorBel(1) << endl;
+            this_thread::sleep_for(chrono::milliseconds(samplingMs));
+        }
+    }
+
 private:
-    double pZOpenBarXOpen = 0.6, pZCloseBarXOpen = 0.4, pZCloseBarXClose = 0.8, pZOpenBarXClose = 0.2;                 // 센서 noise
+    double pZOpenBarXOpen = 0.6, pZCloseBarXOpen = 0.4, pZOpenBarXClose = 0.2, pZCloseBarXClose = 0.8;                 // 센서 noise
     double pXOpenBarUPushXOpen = 1, pXCloseBarUPushXOpen = 0, pXOpenBarUPushXClose = 0.8, pXCloseBarUPushXClose = 0.2; // input noise when doing push
-    Eigen::Matrix2d UPush = Eigen::Matrix2d::Zero(2,2);
-    
     double pXOpenBarUNotXOpen = 1, pXCloseBarUNotXOpen = 0, pXOpenBarUNotXClose = 0, pXCloseBarUNotXClose = 1;         // input noise when doing nothing
-    Eigen::Matrix2d UNot = Eigen::Matrix2d::Zero(2,2);
-    
-    bool isPushing = false, isOpen = false;                                                                            // isPushing is Robot's input, isOpen is Robot's measurement
 
+    bool isPushing = false, isOpen = false; // isPushing is Robot's input, isOpen is Robot's measurement
     double belBarOpen, belBarClose;
-    Eigen::Vector2d belBar = Eigen::Vector2d::Zero(2,1);
-
     double belOpen = P_OPEN_INIT, belClose = P_CLOSE_INIT; // belOpen: 현재 센서값을 기준으로 문이 열려있을 확률, belClose: 현재 센서값을 기준으로 문이 닫혀있을 확률
-    Eigen::Vector2d bel = Eigen::Vector2d::Zero(2,1);
-    
-    int samplingMs = 1000;                                 // for sleep
-    int tick = 0;                                          // for monitoring
+
+    int samplingMs = 1000; // for sleep
+    int tick = 0;          // for monitoring
+
+    Eigen::Vector2d vectorZOpen = Eigen::Vector2d::Zero(2, 1);  // for matrix Eigen library
+    Eigen::Vector2d vectorZClose = Eigen::Vector2d::Zero(2, 1); // for matrix Eigen library
+    Eigen::Matrix2d matrixUPush = Eigen::Matrix2d::Zero(2, 2);  // for matrix Eigen library
+    Eigen::Matrix2d matrixUNot = Eigen::Matrix2d::Zero(2, 2);   // for matrix Eigen library
+    Eigen::Vector2d vectorBelBar = Eigen::Vector2d::Zero(2, 1); // for matrix Eigen library
+    Eigen::Vector2d vectorBel = Eigen::Vector2d::Zero(2, 1);    // for matrix Eigen library
 };
 
 int main()
 {
-    BayesFilter filter;
-    filter.run();
+    vector<pair<bool, bool>> inputsAndMeasures = {{0, 0}, {1, 1}, {0, 1}, {1,0}}; // user input
 
-    /*
-    vector<pair<bool, bool>> inputsAndMeasures = {{0,0},{0,0},{0,0},{0,1},{1,0},{1,1},{0,0},{0,0}}; // user input
-    filter.run_step(inputsAndMeasures);
-    */
+    BayesFilter filter1;
+    filter1.run_step(inputsAndMeasures);
+
+    BayesFilter filter2;
+    filter2.run_step_eigen(inputsAndMeasures); // g++ $(pkg-config --cflags eigen3) robotBayesWithInput.cpp
+
+    BayesFilter filter3;
+    filter3.run(); 
 
     return 0;
 }
