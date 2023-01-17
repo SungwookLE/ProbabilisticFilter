@@ -1,6 +1,7 @@
 /**
  * @file robotBayes.cpp
  * @brief Door Open using Bayes Filter
+ * @name Sungwook Lee (joker1251@naver.com)
  * @date 2023-01-16
  */
 

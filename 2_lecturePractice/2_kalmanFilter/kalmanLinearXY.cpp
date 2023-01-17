@@ -1,7 +1,10 @@
 /**
  * @file kalmanLinearXY.cpp
  * @brief Example2,
- * @brief Linear Case, CONSTANT ACCELERATION MODEL with 2DOF, X = [position ,velocity, acceleration], z = position, all states are observable.
+ * @brief Linear Case, CONSTANT ACCELERATION MODEL with 2DOF, 
+ * @brief X = [position(X) ,velocity(dotX), acceleration(ddotX), position(Y), velocity(dotY), acceleration(ddotY)], z = [position(X), position(Y)], all states are observable.
+ * @brief For analysis, file in & out is available
+ * @name Sungwook Lee (joker1251@naver.com)
  * @date 2023-01-17
  */
 

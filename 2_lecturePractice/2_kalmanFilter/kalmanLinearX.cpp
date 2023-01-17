@@ -2,6 +2,7 @@
  * @file kalmanLinearX.cpp
  * @brief Example1, 
  * @brief Linear Case, CONSTANT ACCELERATION MODEL with 1DOF, X = [position ,velocity, acceleration], z = position, all states are observable.
+ * @name Sungwook Lee (joker1251@naver.com)
  * @date 2023-01-17
  */
 
