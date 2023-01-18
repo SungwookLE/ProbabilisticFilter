@@ -1,6 +1,7 @@
-# Kalman Filter Review
+# Probabilistic Filter
 - Sungwook LEE(joker1251@naver.com)
-- Date: 23.1.16~19
+    - Full Authority in lecturePractice code to `Sungwook LEE`
+- Date: 23.1.16. ~ 23.1.19.
 
 ## Prerequirements
 - Install `eigen3`
@@ -25,6 +26,7 @@
         - ![](img/2023-01-17-09-16-09.png)
 
 2. Bayes Filter (수식 매우 중요)
+    - Bayes Rule에 `Marcov Process` + `Recursive` 을 부여하여 `Belief`를 Recursively Update!
     - ![](img/2023-01-16-15-12-21.png)
     - ![](img/2023-01-16-15-13-58.png)
 
@@ -47,16 +49,49 @@
 
 1. Derivation
 - Assumption: Linear Model, Noise is follow Gaussian
+    - Linear여야지만, 칼만 필터의 Equation을 유도할 수 있고 (예를 들어, `A'PA+Q`) 가우시안 이여야지만 확률분포를 임의의 함수가 아닌, 평균과 분산으로만 기술할 수 있게 된다.
 - ![](img/2023-01-17-19-43-01.png)
 - ![](img/2023-01-17-11-03-16.png)
 - ![](img/2023-01-17-11-05-00.png)
 - 자료에 오타가 있는데, 한번 정리한 후에 올려야할 듯
 
 2. Lecture Practice
-    - [kalmanLinearX](./2_lecturePractice/2_kalmanFilter/kalmanLinearX.cpp)
-    - [kalmanLinearXY](./2_lecturePractice/2_kalmanFilter/kalmanLinearXY.cpp)
+    - [kalmanLinearX.cpp](./2_lecturePractice/2_kalmanFilter/kalmanLinearX.cpp)
+    - [kalmanLinearXY.cpp](./2_lecturePractice/2_kalmanFilter/kalmanLinearXY.cpp)
 
 3. Extended Kalman Filter
+    - 선형화(Jacobian)을 통한 [Covariance, State] Linear Expansion
+    - ![](img/2023-01-18-09-21-24.png)
+    - ![](img/2023-01-18-09-21-41.png)
+    - ![](img/2023-01-18-09-21-49.png)
+
+
+## Day3, Nonlinear Kalman
+
+1. Lecture Practice(EFK)
+    - [extendedKalmanRadar.cpp](./2_lecturePractice/3_extendedKalmanFilter/extendedKalmanRadar.cpp)
+    - [extendedKalmanBenchmark.cpp](./2_lecturePractice/3_extendedKalmanFilter/extendedKalmanBenchmark.cpp)
+
+2. Unscented Kalman Filter
+    - 비선형성이 크면 클수록, EKF의 성능은 저하된다.
+    - `Sigma Points`인 (1+2N)개 포인트 만으로도 로 가우시안을 평가할 수 있다. `Unscented Transform`
+        - N은 State의 개수를 의미함
+        - ![](img/2023-01-18-13-29-51.png)
+    - 점들은 어떻게 고를까?
+        - Unscented Transform 에 정의대로 1+2N개를 고른다.
+        - ![](img/2023-01-18-13-50-54.png)
+    - ![](img/2023-01-18-14-22-38.png)
+    - ![](img/2023-01-18-14-22-47.png)
 
 
 
+3. 비선형 칼만 한계
+    - 가우시안 노이즈를 따르지 않는 문제에서, 어떻게든 선형화(Extended), 선형평가(Unscented) 방식으로는 필터의 성능은 나오지 않는다.
+    - 비선형을 무조건 선형화(Relaxation)할 수 있는 것이 아니다.
+    - 베이즈 필터는 적분에 한계가 있었기 때문에.., 가우시안 분포를 가져와 칼만필터를 만든 것
+        - 칼만필터: `Parameteric Approach`: N(0, Sigma^2)
+    - 다른식의 접근법: `Non Parameteric Approach`: 가우시안 함수 등을 사용하지 말고 적분해야 하는 샘플의 개수를 유한개(몬테카를로 deploy)로 하여 적분값을 평가하자
+        - 파티클필터
+
+4. Particle Filter
+r

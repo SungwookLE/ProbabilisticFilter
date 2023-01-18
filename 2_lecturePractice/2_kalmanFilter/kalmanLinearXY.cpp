@@ -1,7 +1,7 @@
 /**
  * @file kalmanLinearXY.cpp
  * @brief Example2,
- * @brief Linear Case, CONSTANT ACCELERATION MODEL with 2DOF, 
+ * @brief Linear Case, CONSTANT ACCELERATION MODEL with 2DOF,
  * @brief X = [position(X) ,velocity(dotX), acceleration(ddotX), position(Y), velocity(dotY), acceleration(ddotY)], z = [position(X), position(Y)], all states are observable.
  * @brief For analysis, file in & out is available
  * @name Sungwook Lee (joker1251@naver.com)
@@ -156,11 +156,12 @@ public:
         cout << "Error: " << abs(ref[0] - X(0)) << ", " << abs(ref[1] - X(1)) << ", " << abs(ref[2] - X(2))
              << ", " << abs(ref[3] - X(3)) << ", " << abs(ref[4] - X(4)) << ", " << abs(ref[5] - X(5)) << endl;
 
-        if (makeFileFlag){
+        if (makeFileFlag)
+        {
             writeFile << P(0, 0) << ", " << P(1, 1) << ", " << P(2, 2) << ", " << P(3, 3) << ", " << P(4, 4) << ", " << P(5, 5) << ", " << X(0) << ", " << X(1) << ", " << X(2) << ", " << X(3) << ", " << X(4) << ", " << X(5)
-                  << ", " << abs(ref[0] - X(0)) << ", " << abs(ref[1] - X(1)) << ", " << abs(ref[2] - X(2)) << ", " << abs(ref[3] - X(3)) << ", " << abs(ref[4] - X(4)) << ", " << abs(ref[5] - X(5)) << endl;
+                      << ", " << abs(ref[0] - X(0)) << ", " << abs(ref[1] - X(1)) << ", " << abs(ref[2] - X(2)) << ", " << abs(ref[3] - X(3)) << ", " << abs(ref[4] - X(4)) << ", " << abs(ref[5] - X(5)) << endl;
         }
-        now+= dt;
+        now += dt;
     }
 
     ~Kalman()
@@ -175,7 +176,7 @@ private:
     Eigen::MatrixXd X;
     Eigen::MatrixXd K;
 
-    double dt = SAMPLING_MS/1000.0;
+    double dt = SAMPLING_MS / 1000.0;
     double now = 0;
     ofstream writeFile; // for export file
     bool makeFileFlag;  // for export file
