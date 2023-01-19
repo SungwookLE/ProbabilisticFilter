@@ -15,8 +15,10 @@
     - `A tutorial on particle filters for online nonlinear/non-Gaussian Bayesian tracking` by M.S.Arulampalam
 - `Probabilistic Robotics` by S.Thrun
     - [pdf link](https://docs.ufpr.br/~danielsantos/ProbabilisticRobotics.pdf)
+- 모든 코드는 `c++`로 직접 작성함.
 
-## Day1, Bayes
+
+## 1. Bayes
 
 1. In the beginning ...
     - Total Probability Theorem 
@@ -42,7 +44,7 @@
     - 베이즈 필터, 칼만 필터, 파티클 필터의 입력에 의한 predict, 관측에 의한 update 단계에서의 `bel=covariance`는 정확히 위의 그림과 같이 움직인다.
     - 예측 단계에서는 covariance가 움직이고(`+더하기` 불확실성 증대), update 단계에서는 covariance가 보정된다.(`x곱하기, 확률은 1보다 작은값이어서 곱하면 작아진다.` 불확실성 감쇄)
 
-## Day2, Kalman
+## 2. Kalman
 - Bayes 필터는, 모든 state에 대한 확률 적분값(Total Probability Theorem)을 구하는 것이 현실적으로 불가능하다.
     - 칼만필터 등장!
 - 이를 실현 가능한 표현형으로 풀어낸 것이 칼만필터이다. 바로 가우시안 확률분포를 활용하여서..,
@@ -70,8 +72,7 @@
     - ![](img/2023-01-18-09-21-41.png)
     - ![](img/2023-01-18-09-21-49.png)
 
-
-## Day3, Nonlinear Kalman
+## 3. Nonlinear Kalman
 
 1. Lecture Practice(EFK)
     - [extendedKalmanRadar.cpp](./2_lecturePractice/3_extendedKalmanFilter/extendedKalmanRadar.cpp)
@@ -103,7 +104,7 @@
     - ![](img/2023-01-18-16-50-57.png)
     - ![](img/2023-01-18-16-51-07.png)
 
-## Day4, Particle Filter
+## 4. Particle Filter
 1. 확률필터 리뷰
     - 알고싶은 정보: $P(x_t|u_{1:t}, z_{1:t})$
     - 어떻게 하면 알 수 있을까?, 마르코프 프로세스와 재귀적 구조를 사용하여 구하자.
@@ -127,5 +128,10 @@
     
     - 두가지 종류
         1. SIS(Sequential Importance Sampling): 파티클 하나가 웨이트 하나를 가짐으로써, 웨이트가 높은 파티클이 잘못 수렴되었을때, 추정 결과값이 이상해지는것을 막을 수 없다. (웨이트의 크기에 따라 입자 선택)
-        2. SIR(sequential Importance resampling): Resampling Wheel 과정을 통해 이전 스텝에서의 웨이트를 기준으로 파티클을 할당하고 초기화함으로써(할당된 파티클의 개수가 웨이트의 크기라고 볼 수 있음) 파티클을 새롭게 분포시킴으로써, 잘못된 결과값에 수렴되지않게끔 -> 일반적으로 우리가 부르는 파티클 필터 (참고: [particleLocalization.cpp](./0_filterPreview/particle_filter.cpp))
+        2. SIR(sequential Importance Resampling): Resampling Wheel 과정을 통해 이전 스텝에서의 웨이트를 기준으로 파티클을 할당하고 초기화함으로써(할당된 파티클의 개수가 웨이트의 크기라고 볼 수 있음) 파티클을 새롭게 분포시킴으로써, 잘못된 결과값에 수렴되지않게끔 -> 일반적으로 우리가 부르는 파티클 필터 (참고: [particleLocalization.cpp](./0_filterPreview/particle_filter.cpp))
 
+4. Lecture Practice(Particle Filter: SIR)
+    - [sirParticleFilterXYYawrate.cpp](./2_lecturePractice/5_particleFilter/sirParticleFilterXYYawrate.cpp)
+
+
+## 끝

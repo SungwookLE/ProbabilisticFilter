@@ -1,5 +1,5 @@
 /**
- * @file sirParticFilterXYYawrate.cpp
+ * @file sirParticleFilterXYYawrate.cpp
  * @brief NonLinear Case, X = [종거리, 종속도, 횡거리, 횡속도, 요레이트]
  * @brief Z = [종거리, 횡거리]
  * @brief For analysis, file in & out is available
@@ -8,7 +8,7 @@
  */
 
 #include <iostream>
-#include "Eigen/Dense" // g++ $(pkg-config --cflags eigen3) sirParticFilterXYYawrate.cpp
+#include "Eigen/Dense" // g++ $(pkg-config --cflags eigen3) sirParticleFilterXYYawrate.cpp
 #include <thread>
 #include <chrono>
 #include <iomanip>
@@ -22,11 +22,12 @@
 
 using namespace std;
 #define SAMPLING_MS 100
+#define MINVAL 0
 
 std::random_device rd;
 std::mt19937 gen(rd());
 normal_distribution<double> randN(0,1.0);
-uniform_int_distribution<int> randInt(0, 499); // 예제에서 500개여서 일단 하드코딩함
+uniform_real_distribution<double> randU(0.0, 1.0); // 예제에서 500개여서 일단 하드코딩함
 
 class FileReader
 {
@@ -122,9 +123,8 @@ public:
         if (makeFileFlag) // for export file
         {
             writeFile.open("output.csv", ios::out);
-            writeFile <<  endl;
+            writeFile << "X_pred" << ", X_true"<< ", dotX_pred" << ", dotX_true" << ", Y_pred" <<", Y_true"<< ", dotY_pred" << ", dotY_true"<< ", YawRate_pred"<< ", YawRate_true" << endl;
         }
-
         cout << "[1] CONSTRUCT \n";
     }
 
@@ -155,7 +155,7 @@ public:
         Eigen::MatrixXd _SigR = Eigen::MatrixXd::Zero(2,2);
         _SigR << R, 0, 0, R;
 
-        _w = 1 / sqrt((2*M_PI *_SigR).determinant()) * exp(  -0.5* ((_Zp - _Z).transpose() * _SigR.inverse() * (_Zp - _Z))(0)    );
+        _w = 1.0 / pow((2*M_PI *_SigR).determinant(),-0.5) * exp(-0.5*((_Zp-_Z).transpose()*_SigR.inverse()*(_Zp-_Z))(0)) + MINVAL;
         return _w;
     }
 
@@ -165,21 +165,19 @@ public:
         vector<Particle> _Pold = particles;
 
         vector<double> _prob;
-        vector<int> _rNums;
+        vector<double> _rNums;
         double cumsum = 0;
         for(int i = 0 ; i < particles.size(); ++i){
             cumsum += particles[i].W;
             _prob.push_back(cumsum);
-            _rNums.push_back(randInt(gen));
-
-            cout << _prob[i] << endl; // (1/19, cumsum 이상하네.. 해결하자)
+            _rNums.push_back(randU(gen));
         }
 
         sort(_rNums.begin(), _rNums.end());
 
         int fitIn = 0, newIn = 0;
 
-        while(newIn <= num_particles){
+        while(newIn < num_particles){
             if (_rNums[newIn] <= _prob[fitIn]){
                 X_Particles.col(newIn) = _Xold.col(fitIn);
                 particles[newIn] =  _Pold[fitIn];
@@ -188,10 +186,10 @@ public:
             else{
                 fitIn += 1;
             }
-
+            //cout << _rNums[newIn] << ": " << newIn << ", " << _prob[fitIn] << ": " << fitIn<< endl;
         }
 
-        cout << "[3-1] Resampling \n";
+        // cout << "[3-1] Resampling \n";
     }
 
     void update(Eigen::VectorXd _Z){
@@ -201,17 +199,22 @@ public:
             double _W = weight(_Z, Z_Particles.col(i));
             sum_W += _W;
             particles[i].W = _W;
+
+            cout << _W << ", " ;
         }
+        cout << endl;
 
-        for(auto particle: particles)
+        for(auto& particle: particles){
             particle.W = particle.W / sum_W;
-        
+        }
+        cout << endl;
+
+        cout << "[3-1] Update Weight \n";
+
         resampling(X_Particles);
-        X = X_Particles.colwise().mean();
+        X = X_Particles.rowwise().mean();
 
-        cout << "[3] Update with Resampling \n";
-        cout << X << endl;
-
+        cout << "[3-2] Update with Resampling \n";
     }
 
 
@@ -243,17 +246,17 @@ public:
     
 
 
-
-   
-
    void monitoring(vector<double> ref)
     {
-        cout << "Monitoring(" << setw(3) << now << "s): " << endl;
+        cout << "[4] Monitoring(" << setw(3) << now << "s): " << endl;
         cout << "State: " << endl << X << endl;
+        cout << "Error: " << abs(ref[0] - X(0)) << ", " << abs(ref[1] - X(1)) << ", " << abs(ref[2] - X(2)) <<", " 
+        << abs(ref[3] - X(3)) << ", " << abs(ref[4] - X(4)) << endl;
 
         if (makeFileFlag)
         {
-            writeFile << endl;
+            writeFile << X(0) << ", " << ref[0] << ", " << X(1)<< ", " << ref[1] << ", " << X(2) << ", " << ref[2] 
+            << ", " << X(3) << ", " << ref[3] << ", "<< X(4) << ", "<< ref[4] <<  endl;
         }
         now += dt;
     }
@@ -294,16 +297,18 @@ int main()
     // cout << "Export the result as CSV file: Yes(1), No(0): ";
     // cin >> makeFileFlag;
     
-    ParticleFilterSIR filter(500);
+    ParticleFilterSIR filter(500, 1);
 
     Eigen::VectorXd _Z = Eigen::VectorXd::Zero(2);
     for(int col = 0 ; col < Sensor[0].size(); ++col){
         _Z << Sensor[0][col], Sensor[1][col];
         filter.sampling();
         filter.update(_Z);
+        filter.monitoring({Ref[0][col], Ref[1][col], Ref[2][col], Ref[3][col], Ref[4][col]});
     }
 
-
+    // 그래프 돌려보니까 이상한데 지금, 레퍼런스 데이터를 잘못 만들어낸것 같은 느낌? 코드는 돌아가는데 (1/20)
+    // 코드 수정이든 데이터확인이든 필요함..
 
     return 0;
 }
