@@ -1,10 +1,10 @@
 /**
- * particle_filter.h
- * 2D particle filter class.
- *
- * Created on: Dec 12, 2016
- * Author: Tiffany Huang
+ * @file particle_filter.h
+ * @author sungwook LEE
+ * @date 2023-01-20
+ * @copyright Copyright (c) 2023
  */
+
 
 #ifndef PARTICLE_FILTER_H_
 #define PARTICLE_FILTER_H_

@@ -1,3 +1,12 @@
+/**
+ * @file localization_1d.cpp
+ * @author sungwook LEE
+ * @date 2023-01-20
+ * @brief Marcov Bayes
+ * @copyright Copyright (c) 2023
+ */
+
+
 #include <iostream>
 #include <cmath>
 #include <algorithm>

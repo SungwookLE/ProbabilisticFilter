@@ -76,13 +76,11 @@ public:
         X << 0, 90, 1100;
 
         Ad = Eigen::MatrixXd::Zero(3, 3);
-       
 
         Kappa = _Kappa;
 
-        K = Eigen::MatrixXd::Zero(num_state,1);
+        K = Eigen::MatrixXd::Zero(num_state, 1);
 
-        
         makeFileFlag = _makeFileFlag;
         if (makeFileFlag) // for export file
         {
@@ -99,45 +97,50 @@ public:
         }
 
         std::cout << "Constructor\n";
-
     }
 
-    void sigmaPoints_weightSelect(){
-        Xi = Eigen::MatrixXd::Zero(num_state, 2*num_state+1);
-        W = Eigen::MatrixXd::Zero(2*num_state+1, 1);
+    void sigmaPoints_weightSelect()
+    {
+        Xi = Eigen::MatrixXd::Zero(num_state, 2 * num_state + 1);
+        W = Eigen::MatrixXd::Zero(2 * num_state + 1, 1);
 
         Xi.col(0) = X;
         W(0) = Kappa / (num_state + Kappa);
 
-        Eigen::LLT<Eigen::MatrixXd> _U( (num_state + Kappa)*P );
+        Eigen::LLT<Eigen::MatrixXd> _U((num_state + Kappa) * P);
         Eigen::MatrixXd U_ = _U.matrixU();
 
-        //right
-        for(int j =0 ; j < num_state; ++j){
-            Xi.col(j+1) = X + U_.row(j).transpose();
-            W(j+1) = 1/(2*(num_state + Kappa));
+        // right
+        for (int j = 0; j < num_state; ++j)
+        {
+            Xi.col(j + 1) = X + U_.row(j).transpose();
+            W(j + 1) = 1 / (2 * (num_state + Kappa));
         }
 
-        //left
-        for(int j =0 ; j <num_state; ++j){
-            Xi.col(num_state+j+1) = X - U_.row(j).transpose();
-            W(num_state+j+1) = 1/(2*(num_state + Kappa));
+        // left
+        for (int j = 0; j < num_state; ++j)
+        {
+            Xi.col(num_state + j + 1) = X - U_.row(j).transpose();
+            W(num_state + j + 1) = 1 / (2 * (num_state + Kappa));
         }
 
         std::cout << "[1] SigmanPoints and WeightSelect\n";
     }
 
-     std::vector<Eigen::MatrixXd> unscentedTransform(Eigen::MatrixXd outX, Eigen::MatrixXd noiseCov){
+    std::vector<Eigen::MatrixXd> unscentedTransform(Eigen::MatrixXd outX, Eigen::MatrixXd noiseCov)
+    {
         int n = outX.rows();
         int kmax = outX.cols();
 
         Eigen::MatrixXd Xm = Eigen::MatrixXd::Zero(n, 1);
-        for (int k = 0 ; k < kmax; ++k){
-            Xm = Xm  + W(k) * outX.col(k);
+        for (int k = 0; k < kmax; ++k)
+        {
+            Xm = Xm + W(k) * outX.col(k);
         }
 
         Eigen::MatrixXd Xcov = Eigen::MatrixXd::Zero(n, n);
-        for (int k =0 ; k < kmax ; ++k){
+        for (int k = 0; k < kmax; ++k)
+        {
             Xcov = Xcov + W(k) * (outX.col(k) - Xm) * (outX.col(k) - Xm).transpose();
         }
 
@@ -145,22 +148,23 @@ public:
         return {Xm, Xcov};
     }
 
-
-    Eigen::MatrixXd processF(Eigen::MatrixXd _X){
-        Eigen::MatrixXd Xp = Eigen::MatrixXd::Zero(3,1);
+    Eigen::MatrixXd processF(Eigen::MatrixXd _X)
+    {
+        Eigen::MatrixXd Xp = Eigen::MatrixXd::Zero(3, 1);
         Ad << 1, dt, 0,
-              0,  1, 0,
-              0,  0, 1;
-        Xp = Ad*_X;
+            0, 1, 0,
+            0, 0, 1;
+        Xp = Ad * _X;
 
         return Xp;
     }
 
     void predict()
     {
-        fXi = Eigen::MatrixXd::Zero(num_state, 2*num_state+1);
+        fXi = Eigen::MatrixXd::Zero(num_state, 2 * num_state + 1);
 
-        for(int k = 0 ; k < (2*num_state+1); ++k){
+        for (int k = 0; k < (2 * num_state + 1); ++k)
+        {
             fXi.col(k) = processF(Xi.col(k));
         }
 
@@ -171,19 +175,21 @@ public:
 
         std::cout << "[2] Predict\n";
     }
-    
+
     Eigen::MatrixXd nonlinearH(Eigen::MatrixXd _X)
     {
-        Eigen::MatrixXd ret = Eigen::MatrixXd::Zero(1,1);
-        ret << sqrt(_X(0)*_X(0) + _X(2) * _X(2));
+        Eigen::MatrixXd ret = Eigen::MatrixXd::Zero(1, 1);
+        ret << sqrt(_X(0) * _X(0) + _X(2) * _X(2));
 
         return ret;
     }
 
-    void kalmanGainCalculate(){
-        hXi = Eigen::MatrixXd::Zero(1, 2*num_state+1);
+    void kalmanGainCalculate()
+    {
+        hXi = Eigen::MatrixXd::Zero(1, 2 * num_state + 1);
 
-        for (int k =0 ; k < (2*num_state+1); ++k){
+        for (int k = 0; k < (2 * num_state + 1); ++k)
+        {
             hXi.col(k) = nonlinearH(fXi.col(k));
         }
 
@@ -192,18 +198,18 @@ public:
         Pz = ret[1];
 
         Pxz = Eigen::MatrixXd::Zero(num_state, 1); // Pxz 0으로 초기화 안해줘서 무슨 문제가 하고 수식 다 들여봄... 새벽 2시까지 디버깅 함 ㅠㅠ
-        for(int k= 0; k < (2*num_state+1) ; ++k){
+        for (int k = 0; k < (2 * num_state + 1); ++k)
+        {
             Pxz = Pxz + W(k) * (fXi.col(k) - X) * (hXi.col(k) - Zp).transpose();
         }
-        K = Pxz*Pz.inverse();
+        K = Pxz * Pz.inverse();
 
         std::cout << "[3] KalmanGain\n";
     }
 
-
     void update(double z1)
     {
-        Eigen::MatrixXd Z  = Eigen::MatrixXd::Zero(1,1);
+        Eigen::MatrixXd Z = Eigen::MatrixXd::Zero(1, 1);
         Z << z1;
 
         X = X + K * (Z - Zp);
@@ -212,7 +218,6 @@ public:
         std::cout << "[4] Update(Estimated): \n";
     }
 
-
     void monitoring(vector<double> ref)
     {
         cout << "Monitoring(" << setw(3) << now << "s): " << endl;
@@ -220,10 +225,9 @@ public:
              << P << endl;
         cout << "KalmanGain: " << endl
              << K << endl;
-        cout << "State: " << X(0) << ", " << X(1) << ", " << X(2)  << ", " <<sqrt(X(0)*X(0) + X(2)*X(2))<< endl;
-        cout <<"REF: " << ref[0] << ", " << ref[1] << ", " << ref[2] << ", " << sqrt(ref[0]*ref[0] + ref[2]*ref[2])  << ", " << ref[3] << endl;
+        cout << "State: " << X(0) << ", " << X(1) << ", " << X(2) << ", " << sqrt(X(0) * X(0) + X(2) * X(2)) << endl;
+        cout << "REF: " << ref[0] << ", " << ref[1] << ", " << ref[2] << ", " << sqrt(ref[0] * ref[0] + ref[2] * ref[2]) << ", " << ref[3] << endl;
         cout << "Error: " << abs(ref[0] - X(0)) << ", " << abs(ref[1] - X(1)) << ", " << abs(ref[2] - X(2)) << endl;
-
 
         if (makeFileFlag)
         {
@@ -240,7 +244,6 @@ public:
     }
 
 private:
-
     double dt = SAMPLING_MS / 1000.0;
     double Kappa;
 
@@ -254,7 +257,7 @@ private:
     Eigen::MatrixXd fXi, hXi;
 
     int num_state = 3;
-    
+
     double now = 0;
     bool makeFileFlag;  // for export file
     ofstream writeFile; // for export file

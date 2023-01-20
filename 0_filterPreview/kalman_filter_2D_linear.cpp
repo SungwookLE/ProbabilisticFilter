@@ -1,3 +1,11 @@
+/**
+ * @file kalman_filter_2D_linear.cpp
+ * @author sungwook LEE
+ * @date 2023-01-20
+ * @copyright Copyright (c) 2023
+ */
+
+
 #include <iostream>
 #include <vector>
 #include "Eigen/Dense" // g++ $(pkg-config --cflags eigen3) kalman_filter_2D_linear.cpp
