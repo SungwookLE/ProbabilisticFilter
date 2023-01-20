@@ -132,7 +132,13 @@ public:
                       << ", dotY_pred"
                       << ", dotY_true"
                       << ", YawRate_pred"
-                      << ", YawRate_true" << endl;
+                      << ", YawRate_true"
+                      << ", Error_X"
+                      << ", Error_dotX"
+                      << ", Error_Y"
+                      << ", Error_dotY"
+                      << ", Error_YawRate"
+                      << endl;
         }
         cout << "[1] CONSTRUCT \n";
     }
@@ -196,7 +202,6 @@ public:
 
     void update(Eigen::VectorXd _Z)
     {
-
         double sum_W = 0;
         for (int i = 0; i < particles.size(); ++i)
         {
@@ -267,7 +272,9 @@ public:
         if (makeFileFlag)
         {
             writeFile << X(0) << ", " << ref[0] << ", " << X(1) << ", " << ref[1] << ", " << X(2) << ", " << ref[2]
-                      << ", " << X(3) << ", " << ref[3] << ", " << X(4) << ", " << ref[4] << endl;
+                      << ", " << X(3) << ", " << ref[3] << ", " << X(4) << ", " << ref[4] << ", "
+                      << abs(ref[0] - X(0)) << ", " << abs(ref[1] - X(1)) << ", " << abs(ref[2] - X(2)) << ", "
+                      << abs(ref[3] - X(3)) << ", " << abs(ref[4] - X(4)) << endl;
         }
         now += dt;
     }

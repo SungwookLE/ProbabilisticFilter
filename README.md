@@ -104,6 +104,7 @@
 
 4. Unscented Kalman Filter
     - 비선형성이 크면 클수록, EKF의 성능은 저하된다.
+    - ![](img/2023-01-20-23-15-13.png)
     - `Sigma Points`인 (1+2N)개 포인트 만으로도 로 가우시안을 평가할 수 있다. `Unscented Transform`
         - N은 State의 개수를 의미함
         - ![](img/2023-01-18-13-29-51.png)
