@@ -313,6 +313,7 @@ int main()
     {
         _Z << Sensor[0][col], Sensor[1][col];
         filter.sampling();
+        this_thread::sleep_for(chrono::milliseconds(SAMPLING_MS));
         filter.update(_Z);
         filter.monitoring({Ref[0][col], Ref[1][col], Ref[2][col], Ref[3][col], Ref[4][col]});
     }
